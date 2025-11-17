@@ -1,10 +1,69 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BarChart3, TrendingUp, Users, Eye, MousePointerClick, Globe, Clock, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { BarChart3, TrendingUp, Users, Eye, MousePointerClick, Globe, Clock, ArrowUpRight, ArrowDownRight, LogOut } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Session } from "@supabase/supabase-js";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    // Redirect to auth if not logged in
+    if (!loading && !session) {
+      navigate("/auth");
+    }
+  }, [session, loading, navigate]);
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center">
+          <BarChart3 className="h-12 w-12 text-red animate-pulse mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null;
+  }
+
   const stats = [
     { title: "Total Visitors", value: "45,231", change: "+12.5%", trend: "up", icon: Users },
     { title: "Page Views", value: "123,456", change: "+8.2%", trend: "up", icon: Eye },
@@ -47,10 +106,14 @@ const Index = () => {
               <h1 className="text-2xl font-bold text-foreground">Web Traffic Analyzer</h1>
             </div>
             <div className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground">{session.user.email}</span>
               <Button variant="outline">Export Data</Button>
               <Button className="bg-red text-red-foreground hover:bg-red/90">
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Generate Report
+              </Button>
+              <Button variant="outline" size="icon" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </div>

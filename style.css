@@ -52,12 +52,12 @@ th { background-color: #f8fafc; }
 
 /* FAQ & Landing */
 .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
-.hero { text-align: center; padding: 4rem 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; margin: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.hero { text-align: center; padding: 4rem 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; margin: 2rem auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
 .hero h1 { font-size: 3rem; margin-bottom: 1rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
 .hero p { color: #e0e7ff; font-size: 1.2rem; margin-bottom: 2rem; }
 
 /* Colorful Feature Cards */
-.features-section { margin: 4rem 0; }
+.features-section { margin: 15rem 0 4rem 0; }
 .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
 .feature-card { background: var(--white); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; transition: transform 0.3s ease; }
 .feature-card:hover { transform: translateY(-5px); }

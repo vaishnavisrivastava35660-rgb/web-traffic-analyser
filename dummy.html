@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Shop — Dummy Website</title>
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
+        
+        /* Navbar */
+        nav { background: #fff; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { font-weight: bold; font-size: 20px; color: var(--primary); text-decoration: none; }
+        .nav-links button { background: none; border: none; font-size: 15px; cursor: pointer; color: #64748b; margin-left: 20px; }
+        .nav-links button:hover { color: var(--primary); }
+        .btn-primary { background: var(--primary); color: #fff !important; padding: 8px 16px; border-radius: 6px; }
+
+        /* Container */
+        .container { max-width: 800px; margin: 40px auto; padding: 20px; flex: 1; }
+        .view { display: none; animation: fadeIn 0.4s; }
+        .view.active { display: block; }
+
+        /* Forms */
+        .auth-box { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; }
+        .submit-btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .submit-btn:hover { opacity: 0.9; }
+        
+        /* Products Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .product { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center; }
+        .product button { margin-top: 10px; padding: 6px 12px; background: #e2e8f0; border: none; border-radius: 4px; cursor: pointer; }
+        .product button:hover { background: #cbd5e1; }
+
+        /* Tracker Status Toast */
+        #tracker-status { position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: #fff; padding: 10px 15px; border-radius: 50px; font-size: 12px; opacity: 0.7; pointer-events: none; }
+        .blink { animation: blinker 1s linear infinite; display: inline-block; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; margin-right: 5px; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes blinker { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="#" onclick="route('home')" class="logo">E-Shop Demo</a>
+        <div class="nav-links" id="nav-logged-out">
+            <button onclick="route('home')">Home</button>
+            <button onclick="route('login')">Login</button>
+            <button onclick="route('register')" class="btn-primary">Register</button>
+        </div>
+        <div class="nav-links" id="nav-logged-in" style="display:none;">
+            <span id="user-display" style="font-size:14px; color:#64748b; margin-right:15px"></span>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        <div id="home" class="view active">
+            <h1 style="text-align:center; margin-bottom: 40px;">Welcome to our Shop</h1>
+            <div class="grid">
+                <div class="product">
+                    <h3>Super Gadget</h3>
+                    <p>$99.00</p>
+                    <button class="track-click" data-item="Gadget">Add to Cart</button>
+                </div>
+                <div class="product">
+                    <h3>Cool Sneaker</h3>
+                    <p>$120.00</p>
+                    <button class="track-click" data-item="Sneaker">Add to Cart</button>
+                </div>
+                <div class="product">
+                    <h3>Gaming Laptop</h3>
+                    <p>$1500.00</p>
+                    <button class="track-click" data-item="Laptop">Add to Cart</button>
+                </div>
+            </div>
+            
+            <div style="margin-top: 50px; padding: 20px; background: #e0f2fe; border-radius: 8px; color: #0369a1;">
+                <strong>ℹ️ Info:</strong> Click buttons or navigate. Check your <b>Dashboard Tab</b> to see these events appear in real-time.
+            </div>
+        </div>
+
+        <div id="login" class="view">
+            <div class="auth-box">
+                <h2 style="margin-top:0">Login</h2>
+                <form onsubmit="handleLogin(event)">
+                    <input type="email" id="login-email" placeholder="Email" required>
+                    <input type="password" id="login-pass" placeholder="Password" required>
+                    <button type="submit" class="submit-btn">Login</button>
+                </form>
+                <p style="font-size:13px; text-align:center; margin-top:15px;">
+                    No account? <a href="#" onclick="route('register')">Register here</a>
+                </p>
+            </div>
+        </div>
+
+        <div id="register" class="view">
+            <div class="auth-box">
+                <h2 style="margin-top:0">Create Account</h2>
+                <form onsubmit="handleRegister(event)">
+                    <input type="text" id="reg-name" placeholder="Full Name" required>
+                    <input type="email" id="reg-email" placeholder="Email" required>
+                    <input type="password" id="reg-pass" placeholder="Password" required>
+                    <button type="submit" class="submit-btn">Sign Up</button>
+                </form>
+                <p style="font-size:13px; text-align:center; margin-top:15px;">
+                    Already have an account? <a href="#" onclick="route('login')">Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="tracker-status"><span class="blink"></span> Tracking Active</div>
+
+    <script>
+        // 1. Setup Channel (Optional, but we use LocalStorage for persistence)
+        // const channelName = 'web-tracker';
+        // const bc = new BroadcastChannel(channelName);
+
+        // 2. Helper to send data
+        function sendEvent(type, data) {
+            // Construct event matching project.html schema
+            const event = {
+                type: type,
+                details: data, 
+                ts: new Date().toISOString(),
+                url: window.location.href, 
+                page: document.title
+            };
+
+            // Write to LocalStorage directly for persistence
+            try {
+                const events = JSON.parse(localStorage.getItem('wta_events_v1') || '[]');
+                events.push(event);
+                if (events.length > 5000) events.shift();
+                localStorage.setItem('wta_events_v1', JSON.stringify(events));
+            } catch (e) {
+                console.error("Tracking Error:", e);
+            }
+            
+            // Visual feedback
+            const t = document.getElementById('tracker-status');
+            t.innerHTML = `<span class="blink"></span> Sent: ${type}`;
+            setTimeout(() => t.innerHTML = `<span class="blink"></span> Tracking Active`, 2000);
+        }
+
+        // 3. Track Click Events automatically
+        document.addEventListener('click', (e) => {
+            if(e.target.classList.contains('track-click')) {
+                sendEvent('click', {
+                    tag: 'BUTTON',
+                    text: `Add to Cart: ${e.target.dataset.item}`,
+                    user: currentUser ? currentUser.email : 'guest'
+                });
+            }
+        });
+
+    </script>
+
+    <script>
+        // --- ROUTING SYSTEM ---
+        function route(viewName) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            // Show target view
+            document.getElementById(viewName).classList.add('active');
+            
+            // Simulate URL change for the tracker
+            const fakeUrl = viewName === 'home' ? '/' : '/' + viewName;
+            history.pushState({}, '', fakeUrl);
+            document.title = 'E-Shop | ' + viewName.charAt(0).toUpperCase() + viewName.slice(1);
+
+            // TRACKING: Send Pageview
+            sendEvent('pageview', {
+                referrer: document.referrer,
+                user: currentUser ? currentUser.email : 'guest'
+            });
+        }
+
+        // --- AUTH SYSTEM (LocalStorage) ---
+        let currentUser = null;
+
+        function initAuth() {
+            const stored = localStorage.getItem('dummy_session');
+            if (stored) {
+                currentUser = JSON.parse(stored);
+                updateAuthUI();
+            }
+        }
+
+        function updateAuthUI() {
+            if (currentUser) {
+                document.getElementById('nav-logged-out').style.display = 'none';
+                document.getElementById('nav-logged-in').style.display = 'flex';
+                document.getElementById('user-display').innerText = `Hello, ${currentUser.name}`;
+            } else {
+                document.getElementById('nav-logged-out').style.display = 'flex';
+                document.getElementById('nav-logged-in').style.display = 'none';
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-pass').value;
+
+            // Simple validation
+            const users = JSON.parse(localStorage.getItem('dummy_users') || '[]');
+            if(users.find(u => u.email === email)) {
+                alert('User already exists!');
+                return;
+            }
+
+            const newUser = { name, email, pass };
+            users.push(newUser);
+            localStorage.setItem('dummy_users', JSON.stringify(users));
+
+            // Track this event!
+            sendEvent('conversion', { type: 'signup', email: email });
+
+            alert('Registration Successful! Please login.');
+            route('login');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            
+            const users = JSON.parse(localStorage.getItem('dummy_users') || '[]');
+            const user = users.find(u => u.email === email && u.pass === pass);
+
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('dummy_session', JSON.stringify(user));
+                updateAuthUI();
+                route('home');
+                // Track Login
+                sendEvent('login', { user: email });
+            } else {
+                alert('Invalid Credentials');
+                sendEvent('error', { msg: 'Failed login attempt', user: email });
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('dummy_session');
+            updateAuthUI();
+            route('login');
+            sendEvent('logout', {});
+        }
+
+        // Init
+        initAuth();
+        // Send initial pageview
+        sendEvent('pageview', { note: 'Initial Load' });
+
+    </script>
+</body>
+</html>

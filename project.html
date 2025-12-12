@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vortex Analytics — Pro Dashboard</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #050509;
+      --card-bg: rgba(20, 20, 35, 0.6);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1; /* Indigo */
+      --accent: #8b5cf6; /* Violet */
+      --success: #10b981;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --gradient-main: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    }
+
+    * { box-sizing: border-box; outline: none; }
+
+    body {
+      margin: 0;
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 25%);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-dark); }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Header & Nav */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 20px;
+      background: rgba(255,255,255,0.03);
+      padding: 15px 20px;
+      border-radius: 16px;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      background: linear-gradient(to right, #fff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    nav { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    button.tab {
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 8px 16px;
+      border-radius: 8px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    button.tab:hover {
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+    }
+
+    button.tab.active {
+      background: var(--gradient-main);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    /* Cards & Layout */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .full { grid-column: 1 / -1; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    /* Card Glow Effect on Top */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0.5;
+    }
+
+    h3 { margin: 0 0 15px 0; font-size: 16px; font-weight: 500; color: #fff; display: flex; align-items: center; justify-content: space-between; }
+
+    .small { font-size: 12px; color: var(--text-muted); }
+    .hint { color: var(--text-muted); font-size: 13px; margin-bottom: 10px; display: block; line-height: 1.5; }
+
+    /* Live Indicator */
+    .live-dot {
+      height: 8px; width: 8px;
+      background-color: #ef4444;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+      box-shadow: 0 0 8px #ef4444;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.4); } 100% { opacity: 1; transform: scale(1); } }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; color: var(--text-muted); font-weight: 500; padding-bottom: 12px; border-bottom: 1px solid var(--glass-border); }
+    td { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.02); color: #cbd5e1; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { color: #fff; }
+
+    /* Controls */
+    .controls { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    input, select {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--glass-border);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-family: inherit;
+    }
+    
+    /* Metrics Box */
+    .metric-box {
+      display: flex;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.03);
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    .metric-value { font-size: 24px; font-weight: 600; color: #fff; }
+    .metric-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+    /* List items for Top Pages */
+    .top-page-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      border-left: 3px solid var(--primary);
+    }
+
+    footer { text-align: center; margin-top: 40px; padding-bottom: 20px; }
+    
+    /* Helper classes for buttons */
+    .btn-glow {
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .btn-glow:hover { background: rgba(99, 102, 241, 0.25); color: #fff; }
+
+    pre {
+      background: #0f111a;
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+      color: #a5b4fc;
+      overflow-x: auto;
+    }
+
+    /* Auth Styles */
+    #auth-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .auth-box {
+      background: var(--card-bg);
+      border: 1px solid var(--glass-border);
+      padding: 40px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 400px;
+      backdrop-filter: blur(10px);
+      text-align: center;
+    }
+    .auth-box h2 { margin-top: 0; margin-bottom: 20px; }
+    .auth-box input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: #fff;
+    }
+    .auth-box button {
+      width: 100%;
+      padding: 12px;
+      background: var(--gradient-main);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .auth-box button:hover { opacity: 0.9; }
+    .auth-switch { margin-top: 15px; font-size: 14px; color: var(--text-muted); }
+    .auth-switch a { color: var(--primary); cursor: pointer; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Auth Container -->
+  <div id="auth-container">
+    <div class="auth-box" id="login-view">
+      <h2>Login</h2>
+      <form onsubmit="handleAppLogin(event)">
+        <input type="email" id="app-login-email" placeholder="Email" required>
+        <input type="password" id="app-login-pass" placeholder="Password" required>
+        <button type="submit">Login</button>
+      </form>
+      <div class="auth-switch">
+        Don't have an account? <a onclick="toggleAuth('register')">Register</a>
+      </div>
+    </div>
+
+    <div class="auth-box" id="register-view" style="display:none">
+      <h2>Register</h2>
+      <form onsubmit="handleAppRegister(event)">
+        <input type="text" id="app-reg-name" placeholder="Full Name" required>
+        <input type="email" id="app-reg-email" placeholder="Email" required>
+        <input type="password" id="app-reg-pass" placeholder="Password" required>
+        <button type="submit">Create Account</button>
+      </form>
+      <div class="auth-switch">
+        Already have an account? <a onclick="toggleAuth('login')">Login</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="app" id="app" style="display:none">
+    <header>
+      <div>
+        <h1>Vortex Analytics</h1>
+        <div class="small">Real-time Privacy-First Tracking</div>
+      </div>
+      <nav>
+        <button class="tab active" data-view="dashboard">Dashboard</button>
+        <button class="tab" data-view="tracker">Live Simulation</button>
+        <button class="tab" data-view="snippet">Integration</button>
+        <button class="tab" data-view="settings">Settings</button>
+        <button class="tab" onclick="appLogout()" style="border:1px solid var(--glass-border)">Logout</button>
+      </nav>
+    </header>
+
+    <div id="views">
+
+      <section id="dashboard" class="view">
+        <div class="grid">
+          
+          <div class="card">
+            <h3>Live Traffic <span id="live-count" style="font-size:12px; background: rgba(239, 68, 68, 0.15); color: #fca5a5; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(239,68,68,0.3);"><span class="live-dot"></span>0 Active</span></h3>
+            <div style="height: 150px; position: relative;">
+                <canvas id="liveChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Engagement</h3>
+            <div id="engagement-metrics">
+                <div class="metric-box">
+                    <div>
+                        <div class="metric-value">0s</div>
+                        <div class="metric-label">Avg Session</div>
+                    </div>
+                    <div style="text-align:right">
+                         <div class="metric-value">0%</div>
+                         <div class="metric-label">Bounce Rate</div>
+                    </div>
+                </div>
+            </div>
+            <p class="small" style="margin-top:15px; opacity: 0.7">Calculated based on session grouping of last 30 mins.</p>
+          </div>
+
+          <div class="card">
+            <h3>Traffic Sources</h3>
+            <div style="height: 150px; display:flex; justify-content:center;">
+                <canvas id="sourceChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card" style="grid-row: span 2;">
+            <h3>Top Performing Pages</h3>
+            <div id="top-pages" style="max-height: 380px; overflow-y: auto; padding-right:5px;"></div>
+          </div>
+
+          <div class="card full">
+            <h3>24-Hour Trends</h3>
+            <div style="height: 200px;">
+                <canvas id="hourChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card full">
+            <h3>Recent Activity Log</h3>
+            <div style="overflow-x:auto;">
+              <table>
+                <thead><tr><th>Time</th><th>Event</th><th>Page Title</th><th>Path</th><th>Metadata</th></tr></thead>
+                <tbody id="events-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card full">
+            <h3>Data Management</h3>
+            <div class="controls">
+              <button id="exportCsv" class="tab btn-glow">Download CSV</button>
+              <button id="simulateTraffic" class="tab btn-glow">Simulate 100 Users</button>
+              <button id="clearData" class="tab" style="color:#fca5a5; border-color: #7f1d1d;">Reset Data</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section id="tracker" class="view" style="display:none">
+        <div class="grid">
+          <div class="card full">
+            <h3>Tracker Simulation</h3>
+            <p class="hint">This section simulates an external website with the tracking code installed. Use the buttons below to fire events.</p>
+            
+            <div class="controls" style="margin-bottom: 20px;">
+              <button id="visitBtn" class="tab active">Simulate Pageview</button>
+              <button id="clickBtn" class="tab btn-glow">Simulate Click</button>
+              <button id="stayBtn" class="tab btn-glow">Simulate Long Session</button>
+              <button id="multiBtn" class="tab btn-glow">Open New Tab</button>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.3); border: 1px dashed var(--glass-border); padding: 20px; border-radius: 12px;">
+                <h2 style="margin-top:0">Demo Landing Page</h2>
+                <p>Welcome to the demo product page. Interacting here sends data to the dashboard.</p>
+                <button class="tab" style="background:#fff; color:#000;">Buy Now</button>
+                <a href="#" id="demoLink" style="color: var(--primary); margin-left: 10px;">Read Documentation</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="snippet" class="view" style="display:none">
+        <div class="grid">
+            <div class="card full">
+                <h3>Installation</h3>
+                <p class="hint">Copy and paste this snippet into the <code>&lt;head&gt;</code> of your website.</p>
+                <pre>&lt;script&gt;
+(function(){
+  var bc = new BroadcastChannel('web-tracker');
+  function send(type, data){
+    bc.postMessage({
+        type:type,
+        data:data,
+        ts:new Date().toISOString(),
+        url:location.href,
+        page:document.title
+    });
+  }
+  
+  // Track Pageview
+  send('pageview', {referrer:document.referrer, ua:navigator.userAgent});
+
+  // Track Clicks
+  document.addEventListener('click', function(e){
+    send('click',{tag:e.target.tagName, text:e.target.innerText.slice(0,50)});
+  }, {capture:true});
+})();
+&lt;/script&gt;</pre>
+            </div>
+        </div>
+      </section>
+
+      <section id="settings" class="view" style="display:none">
+        <div class="grid">
+            <div class="card full">
+                <h3>Configuration</h3>
+                <div class="controls">
+                    <label>Data Retention (Days): <input id="retention" type="number" value="30" style="width:80px"></label>
+                </div>
+            </div>
+        </div>
+      </section>
+
+    </div>
+
+    <footer class="small">
+      Vortex Analytics Demo &copy; 2025. Built with Vanilla JS & Chart.js.
+    </footer>
+  </div>
+
+  <script>
+    /* --- AUTH LAYER --- */
+    function checkAppAuth() {
+        const user = localStorage.getItem('vortex_user');
+        if (user) {
+            document.getElementById('auth-container').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+        } else {
+            document.getElementById('auth-container').style.display = 'flex';
+            document.getElementById('app').style.display = 'none';
+        }
+    }
+
+    function toggleAuth(view) {
+        document.getElementById('login-view').style.display = view === 'login' ? 'block' : 'none';
+        document.getElementById('register-view').style.display = view === 'register' ? 'block' : 'none';
+    }
+
+    function handleAppRegister(e) {
+        e.preventDefault();
+        const name = document.getElementById('app-reg-name').value;
+        const email = document.getElementById('app-reg-email').value;
+        const pass = document.getElementById('app-reg-pass').value;
+
+        const users = JSON.parse(localStorage.getItem('vortex_users_db') || '[]');
+        if(users.find(u => u.email === email)) {
+            alert('User already exists!');
+            return;
+        }
+
+        users.push({ name, email, pass });
+        localStorage.setItem('vortex_users_db', JSON.stringify(users));
+        alert('Registration successful! Please login.');
+        toggleAuth('login');
+    }
+
+    function handleAppLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('app-login-email').value;
+        const pass = document.getElementById('app-login-pass').value;
+
+        const users = JSON.parse(localStorage.getItem('vortex_users_db') || '[]');
+        const user = users.find(u => u.email === email && u.pass === pass);
+
+        if(user) {
+            localStorage.setItem('vortex_user', JSON.stringify(user));
+            checkAppAuth();
+        } else {
+            alert('Invalid credentials');
+        }
+    }
+
+    function appLogout() {
+        localStorage.removeItem('vortex_user');
+        checkAppAuth();
+    }
+
+    // Init Auth Check
+    checkAppAuth();
+
+
+    /* --- LOGIC LAYER --- */
+    
+    // UI Logic
+    const views = document.querySelectorAll('.view');
+    const tabs = document.querySelectorAll('button.tab[data-view]');
+    
+    function showView(name){
+      views.forEach(v => {
+        v.style.display = (v.id === name) ? 'block' : 'none';
+        if(v.id === name) v.style.animation = 'fadeIn 0.5s ease-out';
+      });
+      tabs.forEach(t => {
+        t.classList.toggle('active', t.dataset.view === name);
+      });
+    }
+
+    tabs.forEach(t => t.addEventListener('click', () => showView(t.dataset.view)));
+
+    // Init View
+    const urlParams = new URLSearchParams(location.search);
+    const initial = urlParams.get('view') || 'dashboard';
+    showView(initial);
+
+
+    /* --- DATA LAYER --- */
+    const channelName = 'web-tracker';
+    const bc = new BroadcastChannel(channelName);
+    
+    function loadEvents(){
+      try{ return JSON.parse(localStorage.getItem('wta_events_v1')||'[]'); }catch(e){return []}
+    }
+    function saveEvents(arr){ localStorage.setItem('wta_events_v1', JSON.stringify(arr)); }
+    function pushEvent(ev){ 
+        const arr = loadEvents(); 
+        arr.push(ev); 
+        // Keep max 5000 events for demo performance
+        if(arr.length > 5000) arr.shift();
+        saveEvents(arr); 
+        renderAll(); 
+    }
+
+    bc.onmessage = function(ev){
+      const msg = ev.data;
+      const event = {
+          ts: msg.ts || new Date().toISOString(), 
+          type: msg.type || 'unknown', 
+          page: msg.page || 'Unknown Page',
+          url: msg.url || location.href, 
+          details: msg.data || {}
+      };
+      pushEvent(event);
+    }
+
+
+    /* --- RENDERING LAYER --- */
+    
+    // Chart Globals
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+    Chart.defaults.font.family = "'Outfit', sans-serif";
+
+    let liveChart, sourceChart, hourChart;
+
+    function renderAll(){
+      const events = loadEvents();
+      
+      // 1. Recent Activity
+      const tbody = document.getElementById('events-tbody');
+      const recent = events.slice().reverse().slice(0, 50);
+      tbody.innerHTML = recent.map(e => `
+        <tr>
+            <td style="color:var(--primary)">${new Date(e.ts).toLocaleTimeString()}</td>
+            <td><span style="background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; font-size:11px;">${e.type.toUpperCase()}</span></td>
+            <td>${e.page}</td>
+            <td style="max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:0.7">${e.url}</td>
+            <td class="small">${JSON.stringify(e.details).slice(0,40)}...</td>
+        </tr>
+      `).join('');
+
+      // 2. Live Count (Last 60s)
+      const now = Date.now();
+      const activeUsers = new Set(events.filter(e => (now - new Date(e.ts).getTime()) < 60000).map(e => e.url)).size;
+      document.getElementById('live-count').innerHTML = `<span class="live-dot"></span> ${activeUsers} Active`;
+
+      // 3. Top Pages
+      const pages = {};
+      events.forEach(e => { pages[e.page] = (pages[e.page]||0) + 1 });
+      const sortedPages = Object.entries(pages).sort((a,b)=>b[1]-a[1]).slice(0,6);
+      document.getElementById('top-pages').innerHTML = sortedPages.map(([name, count]) => `
+        <div class="top-page-item">
+            <span style="font-weight:500;">${name}</span>
+            <span style="font-weight:600; color:#fff;">${count}</span>
+        </div>
+      `).join('') || '<div class="hint">No data collected yet.</div>';
+
+      // 4. Metrics
+      updateMetrics(events);
+
+      // 5. Charts
+      updateCharts(events);
+    }
+
+    function updateMetrics(events) {
+        // Simple Session Logic
+        let sessionCount = 0;
+        let totalDuration = 0;
+        let bounces = 0;
+        // Group by URL to fake sessions for demo
+        // (In real app, you'd use a Session ID)
+        const groups = {};
+        events.forEach(e => { if(!groups[e.url]) groups[e.url]=[]; groups[e.url].push(new Date(e.ts).getTime()); });
+        
+        Object.values(groups).forEach(times => {
+            times.sort();
+            sessionCount++;
+            if(times.length === 1) bounces++;
+            else totalDuration += (times[times.length-1] - times[0]);
+        });
+
+        const avgSession = sessionCount ? Math.round((totalDuration/sessionCount)/1000) : 0;
+        const bounceRate = sessionCount ? Math.round((bounces/sessionCount)*100) : 0;
+
+        document.getElementById('engagement-metrics').innerHTML = `
+            <div class="metric-box">
+                <div><div class="metric-value">${avgSession}s</div><div class="metric-label">Avg Duration</div></div>
+                <div style="text-align:right"><div class="metric-value">${bounceRate}%</div><div class="metric-label">Bounce Rate</div></div>
+            </div>
+            <div class="metric-box" style="margin-top:10px; background: rgba(99, 102, 241, 0.1);">
+                 <div><div class="metric-value" style="color:var(--primary)">${events.length}</div><div class="metric-label">Total Events</div></div>
+            </div>
+        `;
+    }
+
+    function updateCharts(events) {
+        const now = Date.now();
+
+        // -- LIVE CHART (Line) --
+        const bucketSize = 5000; // 5 seconds
+        const buckets = Array(12).fill(0).map((_,i) => ({ time: now - (11-i)*bucketSize, count: 0 }));
+        
+        events.forEach(e => {
+            const t = new Date(e.ts).getTime();
+            if(now - t < 60000) {
+                const idx = 11 - Math.floor((now - t) / bucketSize);
+                if(buckets[idx]) buckets[idx].count++;
+            }
+        });
+
+        const ctxLive = document.getElementById('liveChart').getContext('2d');
+        if(!liveChart) {
+            const grad = ctxLive.createLinearGradient(0,0,0,150);
+            grad.addColorStop(0, 'rgba(99, 102, 241, 0.5)');
+            grad.addColorStop(1, 'rgba(99, 102, 241, 0)');
+
+            liveChart = new Chart(ctxLive, {
+                type: 'line',
+                data: {
+                    labels: buckets.map(b => ''),
+                    datasets: [{
+                        data: buckets.map(b => b.count),
+                        borderColor: '#6366f1',
+                        backgroundColor: grad,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false, min: 0 }
+                    },
+                    animation: { duration: 0 } // disable animation for 'live' feel
+                }
+            });
+        } else {
+            liveChart.data.datasets[0].data = buckets.map(b => b.count);
+            liveChart.update();
+        }
+
+        // -- HOUR CHART (Bar) --
+        const hours = Array(24).fill(0);
+        events.forEach(e => hours[new Date(e.ts).getHours()]++);
+        
+        if(!hourChart) {
+             hourChart = new Chart(document.getElementById('hourChart'), {
+                type: 'bar',
+                data: {
+                    labels: hours.map((_,i) => `${i}:00`),
+                    datasets: [{
+                        label: 'Hits',
+                        data: hours,
+                        backgroundColor: '#8b5cf6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { grid: { color: 'rgba(255,255,255,0.02)' } } }
+                }
+            });
+        } else {
+            hourChart.data.datasets[0].data = hours;
+            hourChart.update();
+        }
+
+        // -- SOURCES CHART (Doughnut) --
+        const sources = {};
+        events.forEach(e => {
+             const ref = (e.details && e.details.referrer) ? new URL(e.details.referrer).hostname : 'Direct';
+             sources[ref] = (sources[ref]||0)+1; 
+        });
+        const sLabels = Object.keys(sources);
+        const sData = Object.values(sources);
+
+        if(!sourceChart) {
+            sourceChart = new Chart(document.getElementById('sourceChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: sLabels,
+                    datasets: [{
+                        data: sData,
+                        backgroundColor: ['#6366f1', '#8b5cf6', '#ec4899', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 10 } } }
+                }
+            });
+        } else {
+            sourceChart.data.labels = sLabels;
+            sourceChart.data.datasets[0].data = sData;
+            sourceChart.update();
+        }
+    }
+
+
+    /* --- CONTROLS --- */
+    document.getElementById('simulateTraffic').addEventListener('click', () => {
+        const pages = ['Pricing', 'Homepage', 'Blog Post #1', 'Contact', 'Features'];
+        for(let i=0; i<50; i++) {
+            const p = pages[Math.floor(Math.random()*pages.length)];
+            const event = {
+                ts: new Date(Date.now() - Math.random()*86400000).toISOString(),
+                type: Math.random() > 0.8 ? 'click' : 'pageview',
+                page: p,
+                url: 'https://vortex.app/'+p.toLowerCase(),
+                details: { referrer: Math.random()>0.5 ? 'https://google.com' : '' }
+            };
+            pushEvent(event);
+        }
+    });
+
+    document.getElementById('clearData').addEventListener('click', () => {
+        if(confirm("Are you sure? This will wipe your local database.")) {
+            localStorage.removeItem('wta_events_v1');
+            location.reload();
+        }
+    });
+
+    document.getElementById('exportCsv').addEventListener('click', () => {
+        const rows = loadEvents();
+        if(!rows.length) return alert('No data');
+        const csvContent = "data:text/csv;charset=utf-8," 
+            + ["Timestamp,Type,Page,URL"].join(",") + "\n"
+            + rows.map(e => `${e.ts},${e.type},"${e.page}","${e.url}"`).join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "vortex_data.csv");
+        document.body.appendChild(link);
+        link.click();
+    });
+
+    // Tracker Controls
+    function sendTracker(type, data){
+        const msg = {
+            type, data, 
+            ts: new Date().toISOString(), 
+            page: 'Demo Landing Page', 
+            url: location.href
+        };
+        bc.postMessage(msg);
+        
+        // If we are on the same page, push locally too for instant feedback
+        if(!location.search.includes('view=dashboard')){
+            pushEvent(msg);
+        } else {
+            // small hack for single file demo: if on dashboard view, just force render
+            // but usually tracker runs on different tab
+             pushEvent(msg);
+        }
+    }
+
+    document.getElementById('visitBtn').addEventListener('click', () => sendTracker('pageview', {referrer: ''}));
+    document.getElementById('clickBtn').addEventListener('click', () => sendTracker('click', {tag:'BUTTON', text:'Buy Now'}));
+    document.getElementById('stayBtn').addEventListener('click', () => {
+        sendTracker('pageview', {});
+        setTimeout(() => sendTracker('ping', {duration: 10}), 2000);
+        alert("Session simulation started...");
+    });
+    document.getElementById('multiBtn').addEventListener('click', () => {
+        window.open(location.href + (location.href.includes('?') ? '&' : '?') + 'view=tracker', '_blank');
+    });
+
+    // Loop render for live effect
+    setInterval(renderAll, 2000);
+    renderAll();
+
+  </script>
+</body>
+</html>
